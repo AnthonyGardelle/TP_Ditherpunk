@@ -56,23 +56,3 @@ Cela garantit la compatibilité avec le compilateur Rust installé sur les machi
 ## 📅 Date de rendu
 
 ⏳ **Le projet doit être finalisé et remis au plus tard le 22 janvier.**  
-
-## Compte Rendu
-
-### 1/ La bibliothèque image
-
-#### Question 2
-
-Le type `DynamicImage` corresponds à une matrice de pixel
-
-### 2/ Passage en monochrome par seuillage
-
-### 3/ Passage à une palette
-
-### 4/ Tramage aléatoire (dithering)
-
-### 5/ Utilisation de la matrice de Bayer comme trame
-
-### 6/ Diffusion d’erreur
-
-### 7/ La bibliothèque argh
