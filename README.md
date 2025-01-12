@@ -23,7 +23,7 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 
 ##  Réponses aux questions 
 
-###  1. La bibliothèque image
+### 1. La bibliothèque image
 
 ### Question 1
 
