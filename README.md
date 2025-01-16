@@ -25,7 +25,7 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 
 ### 1. La bibliothèque image
 
-### Question 1
+#### Question 1
 
 - Créer un nouveau projet Cargo, avec une dépendance sur la bibliothèque image, version 0.24.
 
@@ -40,7 +40,7 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 
 ---
 
-### Question 2
+#### Question 2
 
 - À quoi correspond le type DynamicImage ?
 
@@ -64,7 +64,7 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 
 ---
 
-### Question 3
+#### Question 3
 
 - Sauver l'image obtenue au format png. Que se passe-t-il si l'image de départ avait un canal
 alpha?
@@ -86,7 +86,7 @@ alpha?
 
 ---
 
-### Question 4
+#### Question 4
 
 - Afficher dans le terminal la couleur du pixel (32, 52) de l'image de votre choix.
 
@@ -106,7 +106,7 @@ alpha?
 
 ---
 
-### Question 5
+#### Question 5
 
 - Passer un pixel sur deux d'une image en blanc. Est-ce que l'image obtenue est reconnaissable ?
 
@@ -133,7 +133,7 @@ alpha?
 
 ### 2. Passage en monochrome par seuillage
 
-### Question 6
+#### Question 6
 
 - Comment récupérer la luminosité d'un pixel ?
 
@@ -151,7 +151,7 @@ alpha?
 
 ---
 
-### Question 7
+#### Question 7
 
 - Implémenter le traitement
 
@@ -179,7 +179,7 @@ alpha?
 
 ---
 
-### Question 8
+#### Question 8
 
 - Permettre à l'utilisateurice de remplacer "noir" et "blanc" par une paire de couleurs au choix.
 
@@ -256,3 +256,51 @@ alpha?
     ```
 
 ---
+
+### 4 Tramage aléatoire (dithering)
+
+#### Question 12
+
+- Implémenter le tramage aléatoire des images.
+
+  - Réponse :  
+
+      ```rust
+      use image::{io::Reader as ImageReader, Rgb};
+      use std::rand;
+      use std::rand::Rng;
+
+      fn tramage_random(
+        chemin_img: &str,
+      ) -> Result<(), Box<dyn Error>> {
+          let mut rng = rand::thread_rng();
+          let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
+
+          for (_x, _y, pixel) in img.enumerate_pixels_mut() {
+              let luma = (0.2126 * pixel[0] as f32 + 0.7152 * pixel[1] as f32 + 0.0722 * pixel[2] as f32) as f64 / 255.0;
+              if luma > rng.gen() {
+                  *pixel = Rgb([255, 255, 255]);
+              } else {
+                  *pixel = Rgb([0, 0, 0]);
+              }
+          }
+
+          img.save("./static/img/iut_tramage_random.jpg")?;
+          Ok(())
+      }
+
+
+      fn main() -> Result<(), Box<dyn Error>> {
+          let chemin_img = "./static/img/iut.jpg";
+          let paire = vec!["red", "blue"];
+          monochrome_par_paire(chemin_img, &paire)?;
+          tramage_random(chemin_img)?;
+          Ok(())
+      }
+      ```
+
+  - Résultat :
+
+  ![image](ditherpunk/static/img/iut_tramage_random.jpg)
+
+  ---
