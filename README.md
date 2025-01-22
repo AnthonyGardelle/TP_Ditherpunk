@@ -257,7 +257,57 @@ alpha?
 
 ---
 
-### 4 Tramage aléatoire (dithering)
+### 3. Passage à une palette
+
+#### Question 9
+
+- Comment calculer la distance entre deux couleurs ?
+
+  - Réponse :  
+    Pour calculer la distance entre deux couleurs plusieurs solutions s'offre à nous. On choisie d'utiliser la distance euclidienne des deux couleurs dans un espace RGB.
+    
+    ```math
+    d = \sqrt{(R_2 - R_1)^2 + (G_2 - G_1)^2 + (B_2 - B_1)^2}
+    ```
+
+    Signification des termes :
+    - R : La composante rouge du pixel (de 0 à 255)
+    - G : La composante verte du pixel (de 0 à 255)
+    - B : La composante bleue du pixel (de 0 à 255)
+
+---
+
+#### Question 10
+
+- Implémenter le traitement
+
+  - Réponse :  
+    
+    ```rust
+    fn passage_a_une_palette(chemin_img: &str, palette: Vec<&str>) -> Result<(), Box<dyn Error>> {
+        let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
+        for pixel in img.pixels_mut() {
+            let mut min_d = std::f32::MAX;
+            let mut min_couleur = Rgb([0, 0, 0]);
+            for couleur_str in &palette {
+                let couleur_rgb = string_to_rgb8(couleur_str);
+                let d = euclidean_distance(pixel, &couleur_rgb);
+                if d < min_d {
+                    min_d = d;
+                    min_couleur = couleur_rgb;
+                }
+            }
+            *pixel = min_couleur;
+        }
+        let output_path = format!("./static/img/iut_palette_{}.jpg", palette.join("_"));
+        img.save(output_path)?;
+        Ok(())
+    }
+    ```
+
+---
+
+### 4. Tramage aléatoire (dithering)
 
 #### Question 12
 
@@ -303,4 +353,4 @@ alpha?
 
   ![image](ditherpunk/static/img/iut_tramage_random.jpg)
 
-  ---
+---
