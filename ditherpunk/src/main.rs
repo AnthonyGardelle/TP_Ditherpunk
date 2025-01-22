@@ -2,6 +2,31 @@ use csscolorparser::Color;
 use image::{io::Reader as ImageReader, Rgb, Rgba};
 use std::error::Error;
 use rand::Rng;
+use argh::FromArgs;
+
+
+#[derive(FromArgs, Debug)]
+/// Traitement d'image en ligne de commande
+struct DitherOptions {
+    /// indique l'emplacement de 'image, par défault dans le dossier actuel
+    #[argh(option, short = 'r', default = "String::from(\"./\")")]
+    read_image: String,
+
+    /// indique le dossier où écrire l'image, par défault dans le dossier actuel
+    #[argh(option, short = 'w', default = "String::from(\"./\")")]
+    write_to_dir: String,
+
+    /// choix du mode de filtre d'image :
+    /// - "mono" utilise un filtre monochrome avec un couple de couleurs,
+    /// - "pal" utilise une palette précise,
+    /// - "tram" applique l'algorithme de tramage aléatoire,
+    #[argh(option, short = 'm')]
+    mode: Option<String>,
+
+    /// sélection des couleurs utilisé, soit un couple soit une palette
+    #[argh(option, short = 'c')]
+    colors: Option<String>,
+}
 
 fn rgba8_to_string(composantes: Rgba<u8>) -> String {
     match composantes {
@@ -77,10 +102,13 @@ fn tramage_random(
     Ok(())
 }
 
-fn main() -> Result<(), Box<dyn Error>> {
-    let chemin_img = "./static/img/iut.jpg";
-    let paire = vec!["red", "blue"];
-    monochrome_par_paire(chemin_img, &paire)?;
-    tramage_random(chemin_img)?;
-    Ok(())
+fn main() {
+    let options: DitherOptions = argh::from_env();
+
+    //println!("{:?}", options);
+    // let chemin_img = "./static/img/iut.jpg";
+    // let paire = vec!["red", "blue"];
+    // monochrome_par_paire(chemin_img, &paire)?;
+    // tramage_random(chemin_img)?;
+    // Ok(())
 }

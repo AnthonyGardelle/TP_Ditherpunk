@@ -304,3 +304,26 @@ alpha?
   ![image](ditherpunk/static/img/iut_tramage_random.jpg)
 
   ---
+
+
+### 7 La bibliothèque argh
+
+#### Question 21
+
+- Spécification de l'interface
+
+    ```
+    Usage: mon_programme [-r <Path_image>] [-w <Path_dir>] [-m <mode_selected>] [-c <colors_selected>]
+
+    Options:
+    --read-image, -r       indique l'emplacement de 'image, par défault dans le dossier actuel
+    --write-to-dir, -w     indique le dossier où écrire l'image, par défault dans le dossier actuel
+    --mode, -m             choix du mode de filtre d'image:
+                            "mono" utilise un filtre monochrome avec un couple de couleurs
+                            "pal" utilise une palette précise
+                            "tram" applique l'algorithme de tramage aléatoire
+    --colors, -c           sélection des couleurs utilisé, soit un couple soit une palette
+    --help                 affiche cet écran d'aide
+    ```
+
+#### Question 22
