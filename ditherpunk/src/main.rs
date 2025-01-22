@@ -1,5 +1,6 @@
 use image::{io::Reader as ImageReader, Rgb};
 use std::error::Error;
+use rand::Rng;
 
 fn rgb8_to_string(composantes: Rgb<u8>) -> String {
     match composantes {
@@ -84,6 +85,23 @@ fn passage_a_une_palette(chemin_img: &str, palette: Vec<&str>) -> Result<(), Box
     Ok(())
 }
 
+fn tramage_random(
+    chemin_img: &str,
+) -> Result<(), Box<dyn Error>> {
+    let mut rng = rand::thread_rng();
+    let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
+    for (_x, _y, pixel) in img.enumerate_pixels_mut() {
+        let luma = (0.2126 * pixel[0] as f32 + 0.7152 * pixel[1] as f32 + 0.0722 * pixel[2] as f32) as f64 / 255.0;
+        if luma > rng.gen() {
+            *pixel = Rgb([255, 255, 255]);
+        } else {
+            *pixel = Rgb([0, 0, 0]);
+        }
+    }
+    img.save("./static/img/iut_tramage_random.jpg")?;
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let chemin_img = "./static/img/iut.jpg";
     let paire = vec!["white", "black"];
@@ -92,5 +110,6 @@ fn main() -> Result<(), Box<dyn Error>> {
     ];
     monochrome_par_paire(chemin_img, paire)?;
     passage_a_une_palette(chemin_img, palette2)?;
+    tramage_random(chemin_img)?;
     Ok(())
 }
