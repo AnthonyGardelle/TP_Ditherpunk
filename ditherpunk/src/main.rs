@@ -3,6 +3,55 @@ use image::{io::Reader as ImageReader, Rgb, Rgba};
 use std::error::Error;
 use rand::Rng;
 
+#[derive(Debug)]
+/// Représente une matrice de Bayer, avec les fonctions pour la générer
+struct MatriceBayer {
+    taille: usize,
+    matrice: Vec<Vec<u32>>,
+}
+
+impl MatriceBayer {
+    /// Génère une matrice de Bayer d'ordre `n`
+    fn new_bayer_matrix(ordre: u32) -> Self {
+        let taille = 2usize.pow(ordre);
+        let mut matrice = vec![vec![0; taille]; taille];
+        MatriceBayer::calculer_bayer(&mut matrice, 0, 0, taille, 1, 0);
+        MatriceBayer { taille, matrice }
+    }
+
+    /// Génération récursive de la matrice
+    fn calculer_bayer(matrice: &mut Vec<Vec<u32>>, x: usize, y: usize, taille: usize, etape: u32, valeur: u32) {
+        if taille == 0 {
+            matrice[y][x] = 0;
+            return;
+        }
+
+        //println!("{:?}", valeur);
+
+        if taille == 1 {
+            matrice[y][x] = valeur;
+            return;
+        }
+
+        //let matrice_clone = matrice.clone();
+        // for row in matrice_clone {
+        //     println!("{:?}", row);
+        // }
+
+        let milieu = taille / 2;
+
+        //Calcule haut gauche
+        Self::calculer_bayer(matrice, x, y, milieu, etape*4, valeur+(etape*0));
+        //Calcule bas droite
+        Self::calculer_bayer(matrice, x+milieu, y+milieu, milieu, etape*4, valeur+(etape*1));
+        //Calcule haut droit
+        Self::calculer_bayer(matrice, x+milieu, y, milieu, etape *4, valeur+(etape*2));
+        //Calcule bas gauche
+        Self::calculer_bayer(matrice, x, y+milieu, milieu, etape *4, valeur+(etape*3));
+
+    }
+}
+
 fn rgba8_to_string(composantes: Rgba<u8>) -> String {
     match composantes {
         Rgba([255, 0, 0, 255]) => "red".to_string(),
@@ -77,10 +126,34 @@ fn tramage_random(
     Ok(())
 }
 
+fn ordered_dithering(
+    chemin_img: &str,
+    ordre: u32,
+) -> Result<(), Box<dyn Error>> {
+    let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
+
+    let bayer = MatriceBayer::new_bayer_matrix(ordre);
+
+    for (_x, _y, pixel) in img.enumerate_pixels_mut() {
+        let luma = (0.2126 * pixel[0] as f32 + 0.7152 * pixel[1] as f32 + 0.0722 * pixel[2] as f32) as f64 / 255.0;
+        let seuil = bayer.matrice[(_y % bayer.taille as u32) as usize][(_x % bayer.taille as u32) as usize] as f32 * 1.0 / (bayer.taille * bayer.taille) as f32;
+        if luma > seuil.into() {
+            *pixel = Rgb([255, 255, 255]);
+        } else {
+            *pixel = Rgb([0, 0, 0]);
+        }
+    }
+
+    img.save("./static/img/iut_ordered_dithering.jpg")?;
+    Ok(())
+}
+
 fn main() -> Result<(), Box<dyn Error>> {
     let chemin_img = "./static/img/iut.jpg";
     let paire = vec!["red", "blue"];
     monochrome_par_paire(chemin_img, &paire)?;
     tramage_random(chemin_img)?;
+    ordered_dithering(chemin_img, 3)?;
+
     Ok(())
 }
