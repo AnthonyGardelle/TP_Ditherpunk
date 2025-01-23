@@ -267,12 +267,13 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 
   - Réponse :  
     Pour calculer la distance entre deux couleurs plusieurs solutions s'offre à nous. On choisie d'utiliser la distance euclidienne des deux couleurs dans un espace RGB.
-    
+
     ```math
     d = \sqrt{(R_2 - R_1)^2 + (G_2 - G_1)^2 + (B_2 - B_1)^2}
     ```
 
     Signification des termes :
+
     - R : La composante rouge du pixel (de 0 à 255)
     - G : La composante verte du pixel (de 0 à 255)
     - B : La composante bleue du pixel (de 0 à 255)
@@ -283,8 +284,8 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 
 - Implémenter le traitement
 
-  - Réponse :  
-    
+  - Réponse :
+
     ```rust
     fn passage_a_une_palette(chemin_img: &str, palette: Vec<&str>) -> Result<(), Box<dyn Error>> {
         let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
@@ -499,10 +500,10 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
   }
   ```
 
-  Et enfin la fonction permettant de faire le tramage. 
-  Dans les tramages précédents, nous utilisions un seuil pour comparer avec la luminostié du pixel. 
-  Ici le seuil est l'une des valeurs de la matrice. 
-  En effet, le but du ordered dithering est de placer la matrice comme un motif sur l'image et pour chaque pixel nous prenons comme seuil la valeur superposé. 
+  Et enfin la fonction permettant de faire le tramage.
+  Dans les tramages précédents, nous utilisions un seuil pour comparer avec la luminostié du pixel.
+  Ici le seuil est l'une des valeurs de la matrice.
+  En effet, le but du ordered dithering est de placer la matrice comme un motif sur l'image et pour chaque pixel nous prenons comme seuil la valeur superposé.
   Si jamais l'image à une plus grande résolution que la taille de la matrice alors la matrice est réutilisé à la chaine comme une mosaïque.
 
   ```rust
@@ -535,25 +536,129 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 
 ---
 
-
 ### 7 La bibliothèque argh
 
 #### Question 21
 
 - Spécification de l'interface
 
+  - Résultat :
+
     ```
-    Usage: mon_programme [-r <Path_image>] [-w <Path_dir>] [-m <mode_selected>] [-c <colors_selected>]
+    Usage: ditherpunk [-r <read-image>] [-w <write-to-dir>] -m <mode> [-c <colors>] [-o <order>]
+
+    Traitement d'image en ligne de commande
 
     Options:
-    --read-image, -r       indique l'emplacement de 'image, par défault dans le dossier actuel
-    --write-to-dir, -w     indique le dossier où écrire l'image, par défault dans le dossier actuel
-    --mode, -m             choix du mode de filtre d'image:
-                            "mono" utilise un filtre monochrome avec un couple de couleurs
-                            "pal" utilise une palette précise
-                            "tram" applique l'algorithme de tramage aléatoire
-    --colors, -c           sélection des couleurs utilisé, soit un couple soit une palette
-    --help                 affiche cet écran d'aide
+      -r, --read-image  indique l'emplacement de 'image, par défault dans le dossier
+                        actuel
+      -w, --write-to-dir
+                        indique le dossier où écrire l'image, par défault dans le
+                        dossier actuel
+      -m, --mode        choix du mode de filtre d'image : - "mono" utilise un filtre
+                        monochrome avec un couple de couleurs, - "pal" utilise une
+                        palette précise, - "randTram" applique l'algorithme de
+                        tramage aléatoire, - "ordered" applique l'algorithme du
+                        ordered dithering,
+      -c, --colors      sélection des couleurs utilisé, soit un couple soit une
+                        palette : [black, white, red, blue, green, yellow, cyan,
+                        magenta, gray]. pour sélectionner plusieurs couleurs,
+                        séparez les couleurs par des virgules
+      -o, --order       ordre de la matrice Bayer pour l'option "ordered", par
+                        défaut 3
+      --help, help      display usage information
     ```
 
 #### Question 22
+
+- Déterminer le type Rust correspondant à une sélection d’options fournies par l’utilisateur.
+
+  - Résultat :
+
+    ```rust
+    #[derive(FromArgs, Debug)]
+    /// Traitement d'image en ligne de commande
+    struct DitherOptions {
+        /// indique l'emplacement de 'image, par défault dans le dossier actuel
+        #[argh(option, short = 'r', default = "String::from(\"./\")")]
+        read_image: String,
+
+        /// indique le dossier où écrire l'image, par défault dans le dossier actuel
+        #[argh(option, short = 'w', default = "String::from(\"./\")")]
+        write_to_dir: String,
+
+        /// choix du mode de filtre d'image :
+        /// - "mono" utilise un filtre monochrome avec un couple de couleurs,
+        /// - "pal" utilise une palette précise,
+        /// - "randTram" applique l'algorithme de tramage aléatoire,
+        /// - "ordered" applique l'algorithme du ordered dithering,
+        #[argh(option, short = 'm')]
+        mode: Mode,
+
+        /// sélection des couleurs utilisé, soit un couple soit une palette : [black, white, red, blue, green, yellow, cyan, magenta, gray]. Pour sélectionner plusieurs couleurs, séparez les couleurs par des virgules
+        #[argh(option, short = 'c')]
+        colors: Option<String>,
+
+        /// ordre de la matrice Bayer pour l'option "ordered", par défaut 3
+        #[argh(option, short = 'o', default = "3")]
+        order: u32,
+    }
+
+    /// Enumération des modes disponibles
+    #[derive(Debug)]
+    enum Mode {
+        Mono,
+        Pal,
+        RandTram,
+        Ordered,
+    }
+    ```
+
+#### Question 23
+
+- Implémenter votre interface en ligne de commande à l’aide de la directive #[derive(FromArgs)] sur votre type, suivant la documentation à https://docs.rs/argh/0.1.13/
+  argh/ .
+
+  - Résultat :
+
+    ```rust
+    fn main() -> Result<(), Box<dyn Error>> {
+      let options: DitherOptions = argh::from_env();
+
+      let chemin_img = options.read_image;
+      let dossier_ecriture = format_dossier(&options.write_to_dir); // Formatage du chemin de dossier
+      let mode = options.mode;
+      let couleurs = options.colors.unwrap_or_else(|| String::from(""));
+      let ordre = options.order;
+
+      match mode {
+          Mode::Mono => {
+              let paire: Vec<&str> = couleurs.split(',').collect();
+              if paire.len() != 2 {
+                  return Err("Pour le mode 'mono', fournissez une paire de couleurs (ex: 'white,black')".into());
+              }
+              monochrome_par_paire(&chemin_img, paire, &dossier_ecriture)?;
+          }
+          Mode::Pal => {
+              let palette: Vec<&str> = couleurs.split(',').collect();
+              if palette.is_empty() {
+                  return Err("Pour le mode 'pal', fournissez une palette de couleurs (ex: 'cyan,green,yellow')".into());
+              }
+              passage_a_une_palette(&chemin_img, palette, &dossier_ecriture)?;
+          }
+          Mode::RandTram => {
+              tramage_random(&chemin_img, &dossier_ecriture)?;
+          }
+          Mode::Ordered => {
+              ordered_dithering(&chemin_img, ordre, &dossier_ecriture)?;
+          }
+      }
+
+      println!(
+          "Traitement terminé avec succès. Les images ont été enregistrées dans le dossier : {}",
+          dossier_ecriture
+      );
+
+      Ok(())
+    }
+    ```

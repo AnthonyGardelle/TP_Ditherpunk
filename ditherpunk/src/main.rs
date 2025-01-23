@@ -2,6 +2,7 @@ use image::{io::Reader as ImageReader, Rgb};
 use std::error::Error;
 use rand::Rng;
 use argh::FromArgs;
+use std::path::Path;
 
 
 #[derive(FromArgs, Debug)]
@@ -18,13 +19,41 @@ struct DitherOptions {
     /// choix du mode de filtre d'image :
     /// - "mono" utilise un filtre monochrome avec un couple de couleurs,
     /// - "pal" utilise une palette précise,
-    /// - "tram" applique l'algorithme de tramage aléatoire,
+    /// - "randTram" applique l'algorithme de tramage aléatoire,
+    /// - "ordered" applique l'algorithme du ordered dithering,
     #[argh(option, short = 'm')]
-    mode: Option<String>,
+    mode: Mode,
 
-    /// sélection des couleurs utilisé, soit un couple soit une palette
+    /// sélection des couleurs utilisé, soit un couple soit une palette : [black, white, red, blue, green, yellow, cyan, magenta, gray]. Pour sélectionner plusieurs couleurs, séparez les couleurs par des virgules
     #[argh(option, short = 'c')]
     colors: Option<String>,
+
+    /// ordre de la matrice Bayer pour l'option "ordered", par défaut 3
+    #[argh(option, short = 'o', default = "3")]
+    order: u32,
+}
+
+/// Enumération des modes disponibles
+#[derive(Debug)]
+enum Mode {
+    Mono,
+    Pal,
+    RandTram,
+    Ordered,
+}
+
+impl std::str::FromStr for Mode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "mono" => Ok(Mode::Mono),
+            "pal" => Ok(Mode::Pal),
+            "randTram" => Ok(Mode::RandTram),
+            "ordered" => Ok(Mode::Ordered),
+            _ => Err(format!("Mode invalide: {}", s)),
+        }
+    }
 }
 
 #[derive(Debug)]
@@ -118,7 +147,19 @@ fn euclidean_distance(color1: &Rgb<u8>, color2: &Rgb<u8>) -> f32 {
     ((r2 - r1).powf(2.0) + (g2 - g1).powf(2.0) + (b2 - b1).powf(2.0)).sqrt()
 }
 
-fn monochrome_par_paire(chemin_img: &str, paire: Vec<&str>) -> Result<(), Box<dyn Error>> {
+/// Vérifie et formate un chemin de dossier pour s'assurer qu'il termine par un seul "/".
+fn format_dossier(chemin_dossier: &str) -> String {
+    let chemin = Path::new(chemin_dossier);
+    let chemin_str = chemin.to_str().unwrap_or_default();
+
+    if chemin_str.ends_with('/') {
+        chemin_str.to_string()
+    } else {
+        format!("{}/", chemin_str)
+    }
+}
+
+fn monochrome_par_paire(chemin_img: &str, paire: Vec<&str>, chemin_dossier: &str) -> Result<(), Box<dyn Error>> {
     let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
     let couleur1 = string_to_rgb8(paire[0]);
     let couleur2 = string_to_rgb8(paire[1]);
@@ -130,8 +171,11 @@ fn monochrome_par_paire(chemin_img: &str, paire: Vec<&str>) -> Result<(), Box<dy
             *pixel = couleur2;
         }
     }
+
+    let chemin_dossier_formatte = format_dossier(chemin_dossier);
     let output_path = format!(
-        "./static/img/iut_monochrome_{}_{}.jpg",
+        "{}iut_monochrome_{}_{}.jpg",
+        chemin_dossier_formatte,
         rgb8_to_string(couleur1),
         rgb8_to_string(couleur2)
     );
@@ -139,7 +183,7 @@ fn monochrome_par_paire(chemin_img: &str, paire: Vec<&str>) -> Result<(), Box<dy
     Ok(())
 }
 
-fn passage_a_une_palette(chemin_img: &str, palette: Vec<&str>) -> Result<(), Box<dyn Error>> {
+fn passage_a_une_palette(chemin_img: &str, palette: Vec<&str>, chemin_dossier: &str) -> Result<(), Box<dyn Error>> {
     let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
     for pixel in img.pixels_mut() {
         let mut min_d = std::f32::MAX;
@@ -154,13 +198,15 @@ fn passage_a_une_palette(chemin_img: &str, palette: Vec<&str>) -> Result<(), Box
         }
         *pixel = min_couleur;
     }
-    let output_path = format!("./static/img/iut_palette_{}.jpg", palette.join("_"));
+    let chemin_dossier_formatte = format_dossier(chemin_dossier);
+    let output_path = format!("{}iut_palette_{}.jpg", chemin_dossier_formatte, palette.join("_"));
     img.save(output_path)?;
     Ok(())
 }
 
 fn tramage_random(
     chemin_img: &str,
+    chemin_dossier: &str
 ) -> Result<(), Box<dyn Error>> {
     let mut rng = rand::thread_rng();
     let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
@@ -172,13 +218,15 @@ fn tramage_random(
             *pixel = Rgb([0, 0, 0]);
         }
     }
-    img.save("./static/img/iut_tramage_random.jpg")?;
+    let chemin_dossier_formatte = format_dossier(chemin_dossier);
+    img.save(format!("{}iut_tramage_random.jpg", chemin_dossier_formatte))?;
     Ok(())
 }
 
 fn ordered_dithering(
     chemin_img: &str,
     ordre: u32,
+    chemin_dossier: &str
 ) -> Result<(), Box<dyn Error>> {
     let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
 
@@ -194,22 +242,47 @@ fn ordered_dithering(
         }
     }
 
-    img.save("./static/img/iut_ordered_dithering.jpg")?;
+    let chemin_dossier_formatte = format_dossier(chemin_dossier);
+    img.save(format!("{}iut_ordered_dithering.jpg", chemin_dossier_formatte))?;
     Ok(())
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let chemin_img = "./static/img/iut.jpg";
-    let paire = vec!["white", "black"];
-    let palette2 = vec![
-        "red", "green", "blue", "yellow", "cyan", "magenta", "black", "white",
-    ];
-    monochrome_par_paire(chemin_img, paire)?;
-    passage_a_une_palette(chemin_img, palette2)?;
-    tramage_random(chemin_img)?;
-    ordered_dithering(chemin_img, 3)?;
-
     let options: DitherOptions = argh::from_env();
+
+    let chemin_img = options.read_image;
+    let dossier_ecriture = format_dossier(&options.write_to_dir); // Formatage du chemin de dossier
+    let mode = options.mode;
+    let couleurs = options.colors.unwrap_or_else(|| String::from(""));
+    let ordre = options.order;
+
+    match mode {
+        Mode::Mono => {
+            let paire: Vec<&str> = couleurs.split(',').collect();
+            if paire.len() != 2 {
+                return Err("Pour le mode 'mono', fournissez une paire de couleurs (ex: 'white,black')".into());
+            }
+            monochrome_par_paire(&chemin_img, paire, &dossier_ecriture)?;
+        }
+        Mode::Pal => {
+            let palette: Vec<&str> = couleurs.split(',').collect();
+            if palette.is_empty() {
+                return Err("Pour le mode 'pal', fournissez une palette de couleurs (ex: 'cyan,green,yellow')".into());
+            }
+            passage_a_une_palette(&chemin_img, palette, &dossier_ecriture)?;
+        }
+        Mode::RandTram => {
+            tramage_random(&chemin_img, &dossier_ecriture)?;
+        }
+        Mode::Ordered => {
+            ordered_dithering(&chemin_img, ordre, &dossier_ecriture)?;
+        }
+    }
+
+    println!(
+        "Traitement terminé avec succès. Les images ont été enregistrées dans le dossier : {}",
+        dossier_ecriture
+    );
 
     Ok(())
 }
