@@ -1,0 +1,9 @@
+[package]
+name = "ditherpunk"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+argh = "0.1.13"
+image = "0.24.9"
+rand = "0.8.5"
