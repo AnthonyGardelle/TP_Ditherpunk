@@ -267,12 +267,13 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 
   - Réponse :  
     Pour calculer la distance entre deux couleurs plusieurs solutions s'offre à nous. On choisie d'utiliser la distance euclidienne des deux couleurs dans un espace RGB.
-    
+
     ```math
     d = \sqrt{(R_2 - R_1)^2 + (G_2 - G_1)^2 + (B_2 - B_1)^2}
     ```
 
     Signification des termes :
+
     - R : La composante rouge du pixel (de 0 à 255)
     - G : La composante verte du pixel (de 0 à 255)
     - B : La composante bleue du pixel (de 0 à 255)
@@ -283,8 +284,8 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 
 - Implémenter le traitement
 
-  - Réponse :  
-    
+  - Réponse :
+
     ```rust
     fn passage_a_une_palette(chemin_img: &str, palette: Vec<&str>) -> Result<(), Box<dyn Error>> {
         let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
@@ -499,10 +500,10 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
   }
   ```
 
-  Et enfin la fonction permettant de faire le tramage. 
-  Dans les tramages précédents, nous utilisions un seuil pour comparer avec la luminostié du pixel. 
-  Ici le seuil est l'une des valeurs de la matrice. 
-  En effet, le but du ordered dithering est de placer la matrice comme un motif sur l'image et pour chaque pixel nous prenons comme seuil la valeur superposé. 
+  Et enfin la fonction permettant de faire le tramage.
+  Dans les tramages précédents, nous utilisions un seuil pour comparer avec la luminostié du pixel.
+  Ici le seuil est l'une des valeurs de la matrice.
+  En effet, le but du ordered dithering est de placer la matrice comme un motif sur l'image et pour chaque pixel nous prenons comme seuil la valeur superposé.
   Si jamais l'image à une plus grande résolution que la taille de la matrice alors la matrice est réutilisé à la chaine comme une mosaïque.
 
   ```rust
@@ -548,8 +549,8 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
   \end{pmatrix}
   ```
 
-  - Réponse :  
-    
+  - Réponse :
+
     ```rust
     fn diffusion_d_erreur_simple(chemin_img: &str) -> Result<(), Box<dyn Error>> {
         let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
@@ -619,36 +620,36 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
 #### Question 17
 
 - Pour une palette de couleurs comme dans la partie 3, expliquer dans votre README comment
-vous représentez l’erreur commise à chaque pixel, comment vous la diffusez.
+  vous représentez l’erreur commise à chaque pixel, comment vous la diffusez.
 
-    - Réponse :  
-    
-      L'erreur est définie comme la différence entre la couleur d'origine du pixel et la couleur quantifiée.
+      - Réponse :
 
-      Erreur (R, G, B) : Pour un pixel donné, l'erreur est un vecteur calculé comme suit :
+        L'erreur est définie comme la différence entre la couleur d'origine du pixel et la couleur quantifiée.
 
-      ```math
-      Erreur = ((R_{original}​ - R_{quantifié}), (G_{original}​ - G_{quantifié}), (B_{original}​ - B_{quantifié}))
-      ```
+        Erreur (R, G, B) : Pour un pixel donné, l'erreur est un vecteur calculé comme suit :
 
-      où 𝑅,G,B représentent les composantes rouge, verte et bleue du pixel.
-      
-      Cette erreur représente la quantité de "perte d'information" pour ce pixel spécifique lors de l'arrondi à une couleur de la palette.
+        ```math
+        Erreur = ((R_{original}​ - R_{quantifié}), (G_{original}​ - G_{quantifié}), (B_{original}​ - B_{quantifié}))
+        ```
 
-      Pour limiter l'impact visuel des erreurs de quantification, nous utilisons un algorithme de diffusion d'erreur. L'idée est de répartir l'erreur du pixel courant sur les pixels voisins qui n'ont pas encore été traités. Cela permet de préserver une qualité visuelle en redistribuant les erreurs sur l'ensemble de l'image.
+        où 𝑅,G,B représentent les composantes rouge, verte et bleue du pixel.
 
-      Nous utilisons une matrice comme méthode de diffusion d'erreur. La distribution est réalisée selon un schéma pondéré sur les pixels voisins comme suit :
+        Cette erreur représente la quantité de "perte d'information" pour ce pixel spécifique lors de l'arrondi à une couleur de la palette.
 
-      ```math
-      \begin{pmatrix}
-      * & 0.5 \\
-      0.5 & 0
-      \end{pmatrix}
-      ```
+        Pour limiter l'impact visuel des erreurs de quantification, nous utilisons un algorithme de diffusion d'erreur. L'idée est de répartir l'erreur du pixel courant sur les pixels voisins qui n'ont pas encore été traités. Cela permet de préserver une qualité visuelle en redistribuant les erreurs sur l'ensemble de l'image.
 
-      - Le pixel actuel est marqué par ∗.
-      - L'erreur calculée est multipliée par les pondérations indiquées (0.5, 0.5) et ajoutée aux pixels voisins correspondants.
-      - Ces pondérations sont choisies pour diffuser l'erreur de manière proportionnelle et naturelle.
+        Nous utilisons une matrice comme méthode de diffusion d'erreur. La distribution est réalisée selon un schéma pondéré sur les pixels voisins comme suit :
+
+        ```math
+        \begin{pmatrix}
+        * & 0.5 \\
+        0.5 & 0
+        \end{pmatrix}
+        ```
+
+        - Le pixel actuel est marqué par ∗.
+        - L'erreur calculée est multipliée par les pondérations indiquées (0.5, 0.5) et ajoutée aux pixels voisins correspondants.
+        - Ces pondérations sont choisies pour diffuser l'erreur de manière proportionnelle et naturelle.
 
 ---
 
@@ -656,57 +657,57 @@ vous représentez l’erreur commise à chaque pixel, comment vous la diffusez.
 
 - Implémenter la diffusion d’erreur pour la palettisation d’images.
 
-    - Réponse :
+  - Réponse :
 
-      ```rust
-      fn diffusion_d_erreur_simple_palette(
-            chemin_img: &str,
-            palette: &Vec<&str>,
-        ) -> Result<(), Box<dyn Error>> {
-            let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
-            let largeur = img.width();
-            let hauteur = img.height();
+    ```rust
+    fn diffusion_d_erreur_simple_palette(
+          chemin_img: &str,
+          palette: &Vec<&str>,
+      ) -> Result<(), Box<dyn Error>> {
+          let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
+          let largeur = img.width();
+          let hauteur = img.height();
 
-            let palette_rgb: Vec<Rgb<u8>> = palette.iter().map(|&c| string_to_rgb8(c)).collect();
+          let palette_rgb: Vec<Rgb<u8>> = palette.iter().map(|&c| string_to_rgb8(c)).collect();
 
-            for y in 0..hauteur {
-                for x in 0..largeur {
-                    let current_pixel = img.get_pixel(x, y);
-                    let closest = couleur_la_plus_proche(current_pixel, &palette_rgb);
+          for y in 0..hauteur {
+              for x in 0..largeur {
+                  let current_pixel = img.get_pixel(x, y);
+                  let closest = couleur_la_plus_proche(current_pixel, &palette_rgb);
 
-                    let error = [
-                        current_pixel[0] as i16 - closest[0] as i16,
-                        current_pixel[1] as i16 - closest[1] as i16,
-                        current_pixel[2] as i16 - closest[2] as i16,
-                    ];
+                  let error = [
+                      current_pixel[0] as i16 - closest[0] as i16,
+                      current_pixel[1] as i16 - closest[1] as i16,
+                      current_pixel[2] as i16 - closest[2] as i16,
+                  ];
 
-                    img.put_pixel(x, y, closest);
+                  img.put_pixel(x, y, closest);
 
-                    if x + 1 < largeur {
-                        for c in 0..3 {
-                            let neighbor = img.get_pixel_mut(x + 1, y);
-                            let value = neighbor[c] as i16 + (error[c] as f32 * 0.5) as i16;
-                            neighbor[c] = value.clamp(0, 255) as u8;
-                        }
-                    }
-                    if y + 1 < hauteur {
-                        for c in 0..3 {
-                            let neighbor = img.get_pixel_mut(x, y + 1);
-                            let value = neighbor[c] as i16 + (error[c] as f32 * 0.5) as i16;
-                            neighbor[c] = value.clamp(0, 255) as u8;
-                        }
-                    }
-                }
-            }
+                  if x + 1 < largeur {
+                      for c in 0..3 {
+                          let neighbor = img.get_pixel_mut(x + 1, y);
+                          let value = neighbor[c] as i16 + (error[c] as f32 * 0.5) as i16;
+                          neighbor[c] = value.clamp(0, 255) as u8;
+                      }
+                  }
+                  if y + 1 < hauteur {
+                      for c in 0..3 {
+                          let neighbor = img.get_pixel_mut(x, y + 1);
+                          let value = neighbor[c] as i16 + (error[c] as f32 * 0.5) as i16;
+                          neighbor[c] = value.clamp(0, 255) as u8;
+                      }
+                  }
+              }
+          }
 
-            let output_path = format!(
-                "./static/img/iut_diffusion_d_erreur_simple_palette_{}.jpg",
-                palette.join("_")
-            );
-            img.save(output_path)?;
-            Ok(())
-      }
-      ```
+          let output_path = format!(
+              "./static/img/iut_diffusion_d_erreur_simple_palette_{}.jpg",
+              palette.join("_")
+          );
+          img.save(output_path)?;
+          Ok(())
+    }
+    ```
 
 ---
 
@@ -793,7 +794,7 @@ vous représentez l’erreur commise à chaque pixel, comment vous la diffusez.
 #### Question 20
 
 - Comment représenter une matrice de diffusion d’erreur arbitraire? Permettre de changer de
-matrice de diffusion d’erreurs, et tester les matrices de diffusion de Jarvis-Judice-Ninke et Atkinson
+  matrice de diffusion d’erreurs, et tester les matrices de diffusion de Jarvis-Judice-Ninke et Atkinson
 
   ```math
   \
@@ -813,70 +814,253 @@ matrice de diffusion d’erreurs, et tester les matrices de diffusion de Jarvis-
   \
   ```
 
-    - Réponse :
+      - Réponse :
+
+      ```rust
+      fn diffusion_d_erreur_palette_matrice(
+      chemin_img: &str,
+      palette: &Vec<&str>,
+      diffusion_matrix: &[&[i32]],
+      factor: i32,
+      ) -> Result<(), Box<dyn Error>> {
+          let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
+          let (width, height) = img.dimensions();
+          let palette_rgb: Vec<Rgb<u8>> = palette.iter().map(|&c| string_to_rgb8(c)).collect();
+
+          for y in 0..height as usize {
+              for x in 0..width as usize {
+                  let old_pixel = img.get_pixel(x as u32, y as u32);
+                  let old_pixel = Rgb([old_pixel[0] as u8, old_pixel[1] as u8, old_pixel[2] as u8]);
+
+                  let new_pixel = couleur_la_plus_proche(&old_pixel, &palette_rgb);
+                  img.put_pixel(x as u32, y as u32, new_pixel);
+
+                  let error = [
+                      old_pixel[0] as f32 - new_pixel[0] as f32,
+                      old_pixel[1] as f32 - new_pixel[1] as f32,
+                      old_pixel[2] as f32 - new_pixel[2] as f32,
+                  ];
+
+                  for (dy, row) in diffusion_matrix.iter().enumerate() {
+                      for (dx, weight) in row.iter().enumerate() {
+                          let nx = x as i32 + dx as i32 - (row.len() / 2) as i32;
+                          let ny = y as i32 + dy as i32;
+
+                          if nx >= 0 && nx < width as i32 && ny >= 0 && ny < height as i32 {
+                              let neighbor = img.get_pixel(nx as u32, ny as u32);
+                              let mut neighbor_pixel =
+                                  [neighbor[0] as f32, neighbor[1] as f32, neighbor[2] as f32];
+
+                              for i in 0..3 {
+                                  neighbor_pixel[i] += error[i] * (*weight as f32 / factor as f32);
+                                  neighbor_pixel[i] = neighbor_pixel[i].clamp(0.0, 255.0);
+                              }
+
+                              img.put_pixel(
+                                  nx as u32,
+                                  ny as u32,
+                                  Rgb([
+                                      neighbor_pixel[0] as u8,
+                                      neighbor_pixel[1] as u8,
+                                      neighbor_pixel[2] as u8,
+                                  ]),
+                              );
+                          }
+                      }
+                  }
+              }
+          }
+
+          let output_path = format!(
+              "./static/img/iut_diffusion_d_erreur_palette_matrice_{}.jpg",
+              palette.join("_")
+          );
+          img.save(output_path)?;
+          Ok(())
+      }
+      ```
+
+---
+
+### 7 La bibliothèque argh
+
+#### Question 21
+
+- Spécification de l'interface
+
+  - Résultat :
+
+    ```
+    Usage: ditherpunk [-r <read-image>] [-w <write-to-dir>] -m <mode> [-c <colors>] [-o <order>] [-e <error>]
+
+    Traitement d'image en ligne de commande
+
+    Options:
+    -r, --read-image  indique l'emplacement de 'image, par défault dans le dossier
+                        actuel
+    -w, --write-to-dir
+                        indique le dossier où écrire l'image, par défault dans le
+                        dossier actuel
+    -m, --mode        choix du mode de filtre d'image : - "mono" utilise un filtre
+                        monochrome avec un couple de couleurs, - "pal" utilise une
+                        palette précise, - "randTram" applique l'algorithme de
+                        tramage aléatoire, - "ordered" applique l'algorithme du
+                        ordered dithering, - "error" applique la diffusion d'erreur
+                        avec une palette de couleurs,
+    -c, --colors      sélection des couleurs utilisé, soit un couple soit une
+                        palette : [black, white, red, blue, green, yellow, cyan,
+                        magenta, gray]. Pour sélectionner plusieurs couleurs,
+                        séparez les couleurs par des virgules
+    -o, --order       ordre de la matrice Bayer pour l'option "ordered", par
+                        défaut 3
+    -e, --error       choix de la diffusion d'erreur : - "simple" applique la
+                        diffusion d'erreur simple, - "simplePal" applique la
+                        diffusion d'erreur simple avec une palette de couleurs, -
+                        "floyd" applique la diffusion d'erreur de Floyd-Steinberg, -
+                        "jjn" applique la diffusion d'erreur de Jarvis-Judice-Ninke,
+                        - "atkinson" applique la diffusion d'erreur d'Atkinson,
+    --help, help      display usage information
+    ```
+
+#### Question 22
+
+- Déterminer le type Rust correspondant à une sélection d’options fournies par l’utilisateur.
+
+  - Résultat :
 
     ```rust
-    fn diffusion_d_erreur_palette_matrice(
-    chemin_img: &str,
-    palette: &Vec<&str>,
-    diffusion_matrix: &[&[i32]],
-    factor: i32,
-    ) -> Result<(), Box<dyn Error>> {
-        let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
-        let (width, height) = img.dimensions();
-        let palette_rgb: Vec<Rgb<u8>> = palette.iter().map(|&c| string_to_rgb8(c)).collect();
+    #[derive(FromArgs, Debug)]
+    /// Traitement d'image en ligne de commande
+    struct DitherOptions {
+        /// indique l'emplacement de 'image, par défault dans le dossier actuel
+        #[argh(option, short = 'r', default = "String::from(\"./\")")]
+        read_image: String,
 
-        for y in 0..height as usize {
-            for x in 0..width as usize {
-                let old_pixel = img.get_pixel(x as u32, y as u32);
-                let old_pixel = Rgb([old_pixel[0] as u8, old_pixel[1] as u8, old_pixel[2] as u8]);
+        /// indique le dossier où écrire l'image, par défault dans le dossier actuel
+        #[argh(option, short = 'w', default = "String::from(\"./\")")]
+        write_to_dir: String,
 
-                let new_pixel = couleur_la_plus_proche(&old_pixel, &palette_rgb);
-                img.put_pixel(x as u32, y as u32, new_pixel);
+        /// choix du mode de filtre d'image :
+        /// - "mono" utilise un filtre monochrome avec un couple de couleurs,
+        /// - "pal" utilise une palette précise,
+        /// - "randTram" applique l'algorithme de tramage aléatoire,
+        /// - "ordered" applique l'algorithme du ordered dithering,
+        /// - "error" applique la diffusion d'erreur avec une palette de couleurs,
+        #[argh(option, short = 'm')]
+        mode: Mode,
 
-                let error = [
-                    old_pixel[0] as f32 - new_pixel[0] as f32,
-                    old_pixel[1] as f32 - new_pixel[1] as f32,
-                    old_pixel[2] as f32 - new_pixel[2] as f32,
-                ];
+        /// sélection des couleurs utilisé, soit un couple soit une palette : [black, white, red, blue, green, yellow, cyan, magenta, gray]. Pour sélectionner plusieurs couleurs, séparez les couleurs par des virgules
+        #[argh(option, short = 'c')]
+        colors: Option<String>,
 
-                for (dy, row) in diffusion_matrix.iter().enumerate() {
-                    for (dx, weight) in row.iter().enumerate() {
-                        let nx = x as i32 + dx as i32 - (row.len() / 2) as i32;
-                        let ny = y as i32 + dy as i32;
+        /// ordre de la matrice Bayer pour l'option "ordered", par défaut 3
+        #[argh(option, short = 'o', default = "3")]
+        order: u32,
 
-                        if nx >= 0 && nx < width as i32 && ny >= 0 && ny < height as i32 {
-                            let neighbor = img.get_pixel(nx as u32, ny as u32);
-                            let mut neighbor_pixel =
-                                [neighbor[0] as f32, neighbor[1] as f32, neighbor[2] as f32];
+        /// choix de la diffusion d'erreur :
+        /// - "simple" applique la diffusion d'erreur simple,
+        /// - "simplePal" applique la diffusion d'erreur simple avec une palette de couleurs,
+        /// - "floyd" applique la diffusion d'erreur de Floyd-Steinberg,
+        /// - "jjn" applique la diffusion d'erreur de Jarvis-Judice-Ninke,
+        /// - "atkinson" applique la diffusion d'erreur d'Atkinson,
+        #[argh(option, short = 'e', default = "String::from(\"simple\")")]
+        error: String,
+    }
 
-                            for i in 0..3 {
-                                neighbor_pixel[i] += error[i] * (*weight as f32 / factor as f32);
-                                neighbor_pixel[i] = neighbor_pixel[i].clamp(0.0, 255.0);
-                            }
+    /// Enumération des modes disponibles
+    #[derive(Debug)]
+    enum Mode {
+        Mono,
+        Pal,
+        RandTram,
+        Ordered,
+        Error,
+    }
 
-                            img.put_pixel(
-                                nx as u32,
-                                ny as u32,
-                                Rgb([
-                                    neighbor_pixel[0] as u8,
-                                    neighbor_pixel[1] as u8,
-                                    neighbor_pixel[2] as u8,
-                                ]),
-                            );
-                        }
-                    }
-                }
+    impl std::str::FromStr for Mode {
+        type Err = String;
+
+        fn from_str(s: &str) -> Result<Self, Self::Err> {
+            match s {
+                "mono" => Ok(Mode::Mono),
+                "pal" => Ok(Mode::Pal),
+                "randTram" => Ok(Mode::RandTram),
+                "ordered" => Ok(Mode::Ordered),
+                "error" => Ok(Mode::Error),
+                _ => Err(format!("Mode invalide: {}", s)),
             }
         }
-
-        let output_path = format!(
-            "./static/img/iut_diffusion_d_erreur_palette_matrice_{}.jpg",
-            palette.join("_")
-        );
-        img.save(output_path)?;
-        Ok(())
     }
     ```
 
----
+#### Question 23
+
+- Implémenter votre interface en ligne de commande à l’aide de la directive #[derive(FromArgs)] sur votre type, suivant la documentation à https://docs.rs/argh/0.1.13/
+  argh/ .
+
+  - Résultat :
+
+    ```rust
+    fn main() -> Result<(), Box<dyn Error>> {
+        let options: DitherOptions = argh::from_env();
+
+        let chemin_img = options.read_image;
+        let dossier_ecriture = format_dossier(&options.write_to_dir); // Formatage du chemin de dossier
+        let mode = options.mode;
+        let couleurs = options.colors.unwrap_or_else(|| String::from(""));
+        let ordre = options.order;
+        let erreur_diffuse = options.error.as_str();
+
+        let jarvis_judice_ninke: &[&[i32]] = &[&[0, 0, 0, 7, 5], &[3, 5, 7, 5, 3], &[1, 3, 5, 3, 1]];
+        let atkinson: &[&[i32]] = &[&[0, 0, 1, 1], &[1, 1, 1, 0], &[0, 1, 0, 0]];
+
+        match mode {
+            Mode::Mono => {
+                let paire: Vec<&str> = couleurs.split(',').collect();
+                if paire.len() != 2 {
+                    return Err("Pour le mode 'mono', fournissez une paire de couleurs (ex: 'white,black')".into());
+                }
+                monochrome_par_paire(&chemin_img, paire, &dossier_ecriture)?;
+            }
+            Mode::Pal => {
+                let palette: Vec<&str> = couleurs.split(',').collect();
+                if palette.iter().all(|&color| color.is_empty()) {
+                    return Err("Pour le mode 'pal', fournissez une palette de couleurs (ex: 'cyan,green,yellow')".into());
+                }
+                passage_a_une_palette(&chemin_img, palette, &dossier_ecriture)?;
+            }
+            Mode::RandTram => {
+                tramage_random(&chemin_img, &dossier_ecriture)?;
+            }
+            Mode::Ordered => {
+                ordered_dithering(&chemin_img, ordre, &dossier_ecriture)?;
+            }
+            Mode::Error => {
+                let palette: Vec<&str> = couleurs.split(',').collect();
+                println!("{:?}", palette);
+
+                if !["simple"].contains(&erreur_diffuse) {
+                    if palette.iter().all(|&color| color.is_empty()) {
+                        return Err("Pour le mode 'error', fournissez une palette de couleurs (ex: 'cyan,green,yellow')".into());
+                    }
+                }
+
+                println!("{:?}", palette);
+                match erreur_diffuse {
+                    "simple" => diffusion_d_erreur_simple(&chemin_img, &dossier_ecriture)?,
+                    "simplePal" => diffusion_d_erreur_simple_palette(&chemin_img, &palette, &dossier_ecriture)?,
+                    "floyd" => diffusion_d_erreur_floyd_steinberg_palette(&chemin_img, &palette, &dossier_ecriture)?,
+                    "jjn" => diffusion_d_erreur_palette_matrice(&chemin_img, &palette, &jarvis_judice_ninke, 48, &dossier_ecriture)?,
+                    "atkinson" => diffusion_d_erreur_palette_matrice(&chemin_img, &palette, &atkinson, 8, &dossier_ecriture)?,
+                    _ => return Err("Diffusion d'erreur non supportée".into()),
+                };
+            },
+        }
+
+        println!(
+            "Traitement terminé avec succès. Les images ont été enregistrées dans le dossier : {}",
+            dossier_ecriture
+        );
+        Ok(())
+    }
+    ```
