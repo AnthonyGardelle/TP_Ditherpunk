@@ -21,6 +21,7 @@ struct DitherOptions {
     /// - "pal" utilise une palette précise,
     /// - "randTram" applique l'algorithme de tramage aléatoire,
     /// - "ordered" applique l'algorithme du ordered dithering,
+    /// - "error" applique la diffusion d'erreur avec une palette de couleurs,
     #[argh(option, short = 'm')]
     mode: Mode,
 
@@ -31,6 +32,15 @@ struct DitherOptions {
     /// ordre de la matrice Bayer pour l'option "ordered", par défaut 3
     #[argh(option, short = 'o', default = "3")]
     order: u32,
+    
+    /// choix de la diffusion d'erreur :
+    /// - "simple" applique la diffusion d'erreur simple,
+    /// - "simplePal" applique la diffusion d'erreur simple avec une palette de couleurs,
+    /// - "floyd" applique la diffusion d'erreur de Floyd-Steinberg,
+    /// - "jjn" applique la diffusion d'erreur de Jarvis-Judice-Ninke,
+    /// - "atkinson" applique la diffusion d'erreur d'Atkinson,
+    #[argh(option, short = 'e', default = "String::from(\"simple\")")]
+    error: String,
 }
 
 /// Enumération des modes disponibles
@@ -40,6 +50,7 @@ enum Mode {
     Pal,
     RandTram,
     Ordered,
+    Error,
 }
 
 impl std::str::FromStr for Mode {
@@ -51,6 +62,7 @@ impl std::str::FromStr for Mode {
             "pal" => Ok(Mode::Pal),
             "randTram" => Ok(Mode::RandTram),
             "ordered" => Ok(Mode::Ordered),
+            "error" => Ok(Mode::Error),
             _ => Err(format!("Mode invalide: {}", s)),
         }
     }
@@ -254,7 +266,7 @@ fn ordered_dithering(
     Ok(())
 }
 
-fn diffusion_d_erreur_simple(chemin_img: &str) -> Result<(), Box<dyn Error>> {
+fn diffusion_d_erreur_simple(chemin_img: &str, chemin_dossier: &str) -> Result<(), Box<dyn Error>> {
     let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
     let largeur = img.width();
     let hauteur = img.height();
@@ -312,13 +324,15 @@ fn diffusion_d_erreur_simple(chemin_img: &str) -> Result<(), Box<dyn Error>> {
         }
     }
 
-    img.save("./static/img/iut_diffusion_d_erreur_simple.jpg")?;
+    let chemin_dossier_formatte = format_dossier(chemin_dossier);
+    img.save(format!("{}iut_diffusion_d_erreur_simple.jpg", chemin_dossier_formatte))?;
     Ok(())
 }
 
 fn diffusion_d_erreur_simple_palette(
     chemin_img: &str,
     palette: &Vec<&str>,
+    chemin_dossier: &str
 ) -> Result<(), Box<dyn Error>> {
     let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
     let largeur = img.width();
@@ -356,10 +370,9 @@ fn diffusion_d_erreur_simple_palette(
         }
     }
 
-    let output_path = format!(
-        "./static/img/iut_diffusion_d_erreur_simple_palette_{}.jpg",
-        palette.join("_")
-    );
+    let chemin_dossier_formatte = format_dossier(chemin_dossier);
+    let output_path = format!("{}iut_diffusion_d_erreur_simple_palette_{}.jpg", chemin_dossier_formatte, palette.join("_"));
+
     img.save(output_path)?;
     Ok(())
 }
@@ -367,6 +380,7 @@ fn diffusion_d_erreur_simple_palette(
 fn diffusion_d_erreur_floyd_steinberg_palette(
     chemin_img: &str,
     palette: &Vec<&str>,
+    chemin_dossier: &str
 ) -> Result<(), Box<dyn Error>> {
     let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
     let largeur = img.width();
@@ -418,10 +432,9 @@ fn diffusion_d_erreur_floyd_steinberg_palette(
         }
     }
 
-    let output_path = format!(
-        "./static/img/iut_diffusion_d_erreur_floyd_steinberg_palette_{}.jpg",
-        palette.join("_")
-    );
+    let chemin_dossier_formatte = format_dossier(chemin_dossier);
+    let output_path = format!("{}iut_diffusion_d_erreur_floyd_steinberg_palette_{}.jpg", chemin_dossier_formatte, palette.join("_"));
+
     img.save(output_path)?;
     Ok(())
 }
@@ -431,6 +444,7 @@ fn diffusion_d_erreur_palette_matrice(
     palette: &Vec<&str>,
     diffusion_matrix: &[&[i32]],
     factor: i32,
+    chemin_dossier: &str
 ) -> Result<(), Box<dyn Error>> {
     let mut img = ImageReader::open(chemin_img)?.decode()?.to_rgb8();
     let (width, height) = img.dimensions();
@@ -480,10 +494,9 @@ fn diffusion_d_erreur_palette_matrice(
         }
     }
 
-    let output_path = format!(
-        "./static/img/iut_diffusion_d_erreur_palette_matrice_{}.jpg",
-        palette.join("_")
-    );
+    let chemin_dossier_formatte = format_dossier(chemin_dossier);
+    let output_path = format!("{}iut_diffusion_d_erreur_palette_matrice_{}.jpg", chemin_dossier_formatte, palette.join("_"));
+
     img.save(output_path)?;
     Ok(())
 }
@@ -497,6 +510,10 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mode = options.mode;
     let couleurs = options.colors.unwrap_or_else(|| String::from(""));
     let ordre = options.order;
+    let erreur_diffuse = options.error.as_str();
+
+    let jarvis_judice_ninke: &[&[i32]] = &[&[0, 0, 0, 7, 5], &[3, 5, 7, 5, 3], &[1, 3, 5, 3, 1]];
+    let atkinson: &[&[i32]] = &[&[0, 0, 1, 1], &[1, 1, 1, 0], &[0, 1, 0, 0]];
 
     match mode {
         Mode::Mono => {
@@ -508,7 +525,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         Mode::Pal => {
             let palette: Vec<&str> = couleurs.split(',').collect();
-            if palette.is_empty() {
+            if palette.iter().all(|&color| color.is_empty()) {
                 return Err("Pour le mode 'pal', fournissez une palette de couleurs (ex: 'cyan,green,yellow')".into());
             }
             passage_a_une_palette(&chemin_img, palette, &dossier_ecriture)?;
@@ -519,17 +536,31 @@ fn main() -> Result<(), Box<dyn Error>> {
         Mode::Ordered => {
             ordered_dithering(&chemin_img, ordre, &dossier_ecriture)?;
         }
+        Mode::Error => {
+            let palette: Vec<&str> = couleurs.split(',').collect();
+            println!("{:?}", palette);
+
+            if !["simple"].contains(&erreur_diffuse) {
+                if palette.iter().all(|&color| color.is_empty()) {
+                    return Err("Pour le mode 'error', fournissez une palette de couleurs (ex: 'cyan,green,yellow')".into());
+                }
+            }
+
+            println!("{:?}", palette);
+            match erreur_diffuse {
+                "simple" => diffusion_d_erreur_simple(&chemin_img, &dossier_ecriture)?,
+                "simplePal" => diffusion_d_erreur_simple_palette(&chemin_img, &palette, &dossier_ecriture)?,
+                "floyd" => diffusion_d_erreur_floyd_steinberg_palette(&chemin_img, &palette, &dossier_ecriture)?,
+                "jjn" => diffusion_d_erreur_palette_matrice(&chemin_img, &palette, &jarvis_judice_ninke, 48, &dossier_ecriture)?,
+                "atkinson" => diffusion_d_erreur_palette_matrice(&chemin_img, &palette, &atkinson, 8, &dossier_ecriture)?,
+                _ => return Err("Diffusion d'erreur non supportée".into()),
+            };
+        },
     }
 
     println!(
         "Traitement terminé avec succès. Les images ont été enregistrées dans le dossier : {}",
         dossier_ecriture
     );
-
-    diffusion_d_erreur_simple(chemin_img)?;
-    diffusion_d_erreur_simple_palette(chemin_img, &palette2)?;
-    diffusion_d_erreur_floyd_steinberg_palette(chemin_img, &palette2)?;
-    diffusion_d_erreur_palette_matrice(chemin_img, &palette2, jarvis_judice_ninke, 48)?;
-    diffusion_d_erreur_palette_matrice(chemin_img, &palette2, atkinson, 8)?;
     Ok(())
 }
