@@ -1064,3 +1064,83 @@ Les sections **5 et 6** permettent d'aller plus loin pour obtenir une solution r
         Ok(())
     }
     ```
+
+## Exemple de Commande
+
+### Monochrome
+
+Avec paire classique :
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m mono -c white,black
+```
+
+Avec une paire plus originale :
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m mono -c red,blue
+```
+
+### Palette
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m pal -c red,blue,green
+```
+
+### Tramage aléatoire
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m randTram
+```
+
+### Tramage par matrice bayer (ordered dithering)
+
+Par défaut, l'ordre est de 3 :
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m ordered
+```
+
+Mais on peut le choisir :
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m ordered -o 1
+```
+
+### Diffusion d'erreur
+
+Par défaut, l'erreur choisie est la simple sans palette :
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m error
+```
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m error -e simple
+```
+
+On peut donc choisie quelle méthode de diffusion utiliser :
+
+Simple avec palette :
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m error -e simplePal -c red,blue,yellow
+```
+
+Floyd-Steinberg :
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m error -e floyd -c red,blue,yellow
+```
+
+Jarvis-Judice-Ninke :
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m error -e jjn -c red,blue,yellow
+```
+
+Atkinson :
+
+```
+cargo run -- -r ./static/img/iut.jpg -w ./static/output/ -m error -e atkinson -c red,blue,yellow
+```
