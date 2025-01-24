@@ -538,7 +538,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         Mode::Error => {
             let palette: Vec<&str> = couleurs.split(',').collect();
-            println!("{:?}", palette);
 
             if !["simple"].contains(&erreur_diffuse) {
                 if palette.iter().all(|&color| color.is_empty()) {
@@ -546,7 +545,6 @@ fn main() -> Result<(), Box<dyn Error>> {
                 }
             }
 
-            println!("{:?}", palette);
             match erreur_diffuse {
                 "simple" => diffusion_d_erreur_simple(&chemin_img, &dossier_ecriture)?,
                 "simplePal" => diffusion_d_erreur_simple_palette(&chemin_img, &palette, &dossier_ecriture)?,
